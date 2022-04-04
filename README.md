@@ -1,6 +1,6 @@
-# Dead Simple Templates.
+# `dst` - dead simple templates.
 
-`dst` is a very simple template system built on top of javascript tagged templates.
+`dst` is a very simple template system inspired by mustaches, but built on top of javascript tagged templates.
 
 ## Usage.
 
@@ -9,52 +9,46 @@ Here is a quick example showing how to use `dst`
 ```javascript
 import {dst, item} from './path/to/dst.js'
 
-let title = "Joe",
-    calc = ()=>2+4
+let a = ["Moe","Larry","Curly"],
+    str = dst`Stooges:\n${{a}}  ${item}\n${{}}`
+```
+The value of `str` is:
 
-var output = dst`${title} spends ${calc()}`
+```
+Stooges:
+  Moe
+  Larry
+  Curly
 ```
 
-Wait, that's just template literals! It is, but `dst` also gives you lightweight mustache-like templating in about 70 lines of code. Read on:
+A `dst` template is a javascript tagged template which understands **sections**, that can be included, excluded, or repeated multiple times. In the above template, the section starts with `${{a}}` and ends with `${{}}`. The start of the section is a template placeholder `${     }` containing the object literal `{a}`. The end of the section is a placeholder containing an empty object `{}`. Since `a` is an array, the inside of the section is repeated as many times as there are items in the array. Within the section, `item` refers to the current item in the loop.
 
-## `dst` Templates.
+`dst` handles most other substitutions as if it were a normal template literal.
 
-A `dst` template is a javascript tagged template which understands **sections**, that can be included, excluded, or repeated multiple times. A **section** is a part of the template literal which starts with something that looks like `${{...}}` and ends with `${{}}`.
-
-The outer part of the section, `${     }`, is just a standard template substitution syntax. The inner curly brackets `{...}` create an object which is interpreted by the `dst` function as a section start.
-
-The section end `${{}}` is a template substitution `${...}` of an empty object `{}`.
+There are two kinds of section in `dst`: boolean and array. They have the same "syntax".
 
 ## Boolean Sections.
-A boolean section is shown or omitted depending on the value of a boolean variable. For example:
+A boolean section is a section that is shown or omitted depending on the value of a boolean variable. For example, the code below:
 ```javascript
-let p = false
-
-console.log(dst`
-shown
-${{p}}
-not shown
-${{}}`
+let p = false,
+    str = dst`shown ${{p}}\n not shown ${{}}`
 ```
-gives the following output
+will give `str` the following value:
 
 ```
 shown
-
 ```
-Note that `${{p}}` is a template substitution `${...}` of the object literal `{p}`. The `dst` tagged template function picks out objects as sections, since objects aren't any use in normal template literals.
+The part of the template between the start of the section `${{p}}` and the end `${{}}` is only processed and output if `p` is true.
 
 ## Array Sections.
 
-When the variable in the section is an array, the section is repeated multiple times. For example:
+When the variable in the section start is an array, the section is repeated multiple times. For example:
 
 ```javascript
-let a = ["Moe","Larry","Curly"]
-
-console.log(dst`Stooges:\n<ul>\n${{a}}   <li>${item}</li>\n${{}}</ul>`)
+let a = ["Moe","Larry","Curly"],
+    str = dst`Stooges:\n<ul>\n${{a}}   <li>${item}</li>\n${{}}</ul>`
 ```
-gives the following output:
-
+The value of `str` is then
 ```
 Stooges:
 <ul>
@@ -63,17 +57,15 @@ Stooges:
    <li>Curly</li>
 </ul>
 ```
-The start of the array section in the template is indicated by `${{a}}` and the end of the section is again indicated by `${{}}`. The template between the start and end is looped over as often as there are elements in `a`. Within the loop section, the special object `item` refers to the array element in the loop. 
+The start of the array section in the template is indicated by `${{a}}` and the end of the section is indicated by `${{}}`. The template string between the start and end is looped over as often as there are elements in `a`. Within the loop section, the special object `item` refers to the array element in the loop. 
 
 If the array elements are objects, then we can reference parts of those objects using `item`. For example:
 
 ```javascript
-let a = [{name:"Moe"},{name:"Larry"},{name:"Curly"}]
-
-console.log(dst`Stooges:\n<ul>\n${{a}}   <li>${item.name}</li>\n${{}}</ul>`)
+let a = [{name:"Moe"},{name:"Larry"},{name:"Curly"}],
+    str = dst`Stooges:\n<ul>\n${{a}}   <li>${item.name}</li>\n${{}}</ul>`
 ```
-also gives the following output:
-
+also gives `str` the same value:
 ```
 Stooges:
 <ul>
@@ -85,52 +77,32 @@ Stooges:
 
 ## Nested Sections.
 
-If the `item` in an array is itself an array, it can be used to start another section. For example:
+The `item` in an array section can be used to start another section. For example:
 
 ```javascript
-let a = [[1,2,3], [4,5,6], [7,8]]
-
-console.log(dst`${{a}} * ${{item}} element = ${item}, ${{}}\n${{}}`)
+let a = [[1,2,3], [4,5,6], [7,8]],
+    str = dst`${{a}} * ${{item}} element = ${item}, ${{}}\n${{}}`
 ```
-
-gives the following output:
-
+gives `str` the following value:
 ```
  *  element = 1,  element = 2,  element = 3, 
  *  element = 4,  element = 5,  element = 6, 
  *  element = 7,  element = 8, 
 ```
+The first occurrence of `item` is `${{item}}` which starts a new array section, since the item is an array.
+Within the nested section `${{item}}...${{}}` section, the second occurrence of `item`, namely `${item}`,causes substitution.
 
-Within the `${{a}}...${{}}` section, `${item}` refers to the current item in `a`, say `a[i]` However, `${{item}} ...${{}}` is interpreted as a **section** using the current item in `a`. Within that section `${item}` now refers to an element of `a[i]`.
-
-The nexted section doesn't have to be an array. If it evaluated to a boolean value, the nested section would be included or omitted. For example:
-
-```javascript
-let a = [[1,2,3], [4,5,6], false, [7,8], true]
-
-console.log(dst`${{a}} * ${{item}} element = ${item}, ${{}}\n${{}}`)
-```
-
-gives
-
-```
- *  element = 1,  element = 2,  element = 3, 
- *  element = 4,  element = 5,  element = 6, 
- * 
- *  element = 7,  element = 8, 
- *  element = true, 
-```
+The nested section doesn't have to be an array. If it evaluated to a boolean value, the nested section would be included or omitted.
 
 ## Functions.
 
-A function can be used in substitution or as a section. When used in a substitution, it takes the current array element or section variable. For example
-
+A function can be used in a template substitution or to start a section. 
+When used in a template substitution, it takes the current array element or section variable. For example
 ```javascript
-let a = [1,2,3,4]
-
-console.log(dst`${{a}} ${item} squared is ${v=>v**2}\n${{}}`)
+let a = [1,2,3,4],
+   str = dst`${{a}} ${item} squared is ${i=>i**2}\n${{}}`
 ```
-gives
+gives `str` the value
 ```
  1 squared is 1
  2 squared is 4
@@ -138,23 +110,39 @@ gives
  4 squared is 16
 ```
 
-`item` is interpreted as a function `v=>v`, although it's actually a Proxy object.
+When a function is used as a section, it is called on the current array item or section variable, and the result of that is used as the section value. (If there is no current array item or section, it is passed `undefined`). 
 
-When a function is used as a section, it also calls the current array item or section variable, and the result of that is used as the section value. (If there is no current array item or section, it is passed `undefined`). For example
+For example:
 ```javascript
-let a = [1,2,3,4]
-
-console.log(dst`${{a}} ${{x:v=>Array(v).fill('*')}} ${item} ${{}}\n${{}}`)
+let a = [1,2,3,4],
+    stars = v=>Array(v).fill('*'),
+    str = dst`${{a}} ${{stars}} ${item} ${{}}\n${{}}`
 ```
-gives
+gives `str` the value
 ```
   * 
   *  * 
   *  *  * 
   *  *  *  * 
 ```
+The outer section `${{a}}...${{}}` loops over `a`. The inner section starts with `${{stars}}`. The function `stars` is passed the current item of `a`, and returns an array of stars. This array is then looped over to produce each line in the output.
 
-Notice in this case we have to give the function a name `x` so the object literal `{x:v=>Array(v).fill('*')}` makes sense as a javascript object. We could pass the function within an array rather than an object and it would also work, i.e. ``${[v=>Array(v).fill('*')]}`` does the same thing as `${{x:v=>Array(v).fill('*')}}`; the only downside to this is you lose the mustaches `{{` and `}}`. 
+The main use for functions is to process the current array item. However, functions are actually called with the array element (`item`), the array index, and the array, much like a `map` callback. You can use as many or as few of these arguments as you want.
+
+## Using `${[  ]}` instead of `${{  }}` 
+
+A section is marked by a template placeholder containing an object literal. Since arrays are also objects in javascript, a section can start instead with a placeholder containing an array. This is useful if we want to use anonymous variables. For example
+```javascript
+let str = dst`${[ [1,2,3] ]} ${item} ${{}}`
+```
+gives `str` the value ``' 1  2  3 '``. 
+
+This feature means you **can't** substitute arrays directly into `dst`, since `${[1,2,3]}` is going to be interpreted as a section (and a *boolean* section, for that matter). Instead, to substitute an array, you need to make it a string by joining it, as `${[1,2,3].join(',')}`. This is what happens to arrays anyway in ordinary template literals.
+
+The main use for this alternative section start `${[  ]}` is if you want to use an anonymous function for the section. The stars example above could then be written as 
+```javascript
+dst`${{a}} ${[v=>Array(v).fill('*')]} ${item} ${{}}\n${{}}` 
+```
 
 ## Re-using Templates.
 
@@ -164,16 +152,40 @@ The only way to reuse a `dst` template is to put it in a function. Thus:
 function stooges(a) {
    return dst`Stooges:\n<ul>\n${{a}}   <li>${item.name}</li>\n${{}}</ul>`
 }
-console.log(stooges([{name:"Moe"},{name:"Larry"},{name:"Curly"}]))
+stooges([{name:"Moe"},{name:"Larry"},{name:"Curly"}])
 ```
-
-Doing this allows you to insert templates within templates. If you pass the function, it is called with the current array item or section variable. If you call the function, its output is inserted into the template, as normal.
+Writing templates as functions lets you to insert templates within templates. If you pass the function, it is called with the current array item or section variable. If instead you call the function, its output is inserted into the template, as normal.
 
 For example
 ```javascript
 let li = value => dst`<li>${value.name}</li>`, // dst isn't really useful here
-    a = [{name:"Moe"},{name:"Larry"},{name:"Curly"}]
-
-console.log(dst`Stooges:\n<ul>\n${{a}} ${li}\n${{}}</ul>`)
+    a = [{name:"Moe"},{name:"Larry"},{name:"Curly"}],
+    str = dst`Stooges:\n<ul>\n${{a}} ${li}\n${{}}</ul>`
 ```
 does the same as before.
+
+## `item`
+The `item` object is a proxy for an identity function `v=>v`. The proxy allows you to access elements of the array element using dot notation. In addition, you can apply additional functions to item by calling it  as if it were a function. For example
+```
+item.name(n=>'name='+n)
+```
+will produce an item object that first gets the `.name` property of the array element and then prefixes it with `'name='`. This is a bit clumsy but it's unfortunately the only way an element property can be further modified.
+
+## Join elements, last element.
+
+Sometimes you will want to run an array section where the last element is treated a little differently, or where something is inserted between elements, but not after the last one. You can do this by defining two functions `join` and `last` and using them as boolean sections. The functions are:
+```javascript
+let join = (v,i,arr)=>(i<arr.length-1),
+    last = (v,i,arr)=>(i==arr.length-1)
+```
+These can be used as follows:
+```javascript
+let a = [1,2,3],
+    str = dst`${{a}} ${item}${{join}},${{}} ${{}}`
+```
+gives `str` the value `' 1,  2,  3 '`, and
+```javascript
+let a = [1,2,3],
+    str = dst`${{a}} ${item}${{join}},${{}}${{last}}!${{}}${{}}`
+```
+gives `str` the value `' 1, 2, 3!'`. (However, this could be achieved without using `last`.)

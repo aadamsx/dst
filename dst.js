@@ -45,25 +45,25 @@ function render(strings, values, sections, loopstack, start, end) {
 				val = valueof(val, is(val))
 				if (is(val) == 'var') {
 					// reference to the outer loop variate
-					val = val(loopstack.at(-1))
+					val = val(...loopstack.at(-1))
 				}
 				if (Array.isArray(val)) {
 					// a loop section
 					for (let k = 0; k < val.length; k++) {
-						loopstack.push(val[k])
+						loopstack.push([val[k], k, val])
 						output += render(strings, values, sections, loopstack, i + 1, sections[i] + 1)
 						loopstack.pop()
 					}
 				} else if (val) {
 					// an if section
-					loopstack.push(val)
+					loopstack.push([val])
 					output += render(strings, values, sections, loopstack, i + 1, sections[i] + 1)
 					loopstack.pop()
 				}
 				i = sections[i]
 				break
 			case 'var':
-				output += val(loopstack.at(-1))
+				output += val(...loopstack.at(-1))
 				break
 			default:
 				// direct substitution - normal template literal behaviour
@@ -76,17 +76,17 @@ function render(strings, values, sections, loopstack, start, end) {
 let handler = {
 	apply: function (target, thisarg, args) {
 		if (typeof args[0] == 'function') {
-			return new Proxy(v => args[0](target(v)), handler)
+			return new Proxy((v,i,a) => args[0](target(v,i,a)), handler)
 		} else {
 			// call the target function
-			return target(args[0])
+			return target(...args)
 		}
 	},
 	get: function (target, prop, receiver) {
-		return new Proxy(v => target(v)[prop], handler)
+		return new Proxy((v,i,a) => target(v,i,a)[prop], handler)
 	}
 }
-export let item = new Proxy(v => v, handler) // typeof item is 'function'
+export let item = new Proxy((v,i,a) => v, handler) // typeof item is 'function'
 
 window.dst = dst
 window.item = item

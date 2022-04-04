@@ -100,7 +100,7 @@ A function can be used in a template substitution or to start a section.
 When used in a template substitution, it takes the current array element or section variable. For example
 ```javascript
 let a = [1,2,3,4],
-   str = dst`${{a}} ${item} squared is ${i=>i**2}\n${{}}`
+    str = dst`${{a}} ${item} squared is ${i=>i**2}\n${{}}`
 ```
 gives `str` the value
 ```

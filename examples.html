@@ -1,0 +1,127 @@
+<html>
+<head>
+<style>
+code, samp {
+	background: lightgray;
+}
+</style>
+</head>
+<body>
+<div id=examples style='display:grid; max-width:700px; gap:10px'>
+
+Input
+<textarea disabled rows=3>
+let a = ["Moe","Larry","Curly"],
+    result = dst`Stooges:\n${{a}}  ${item}\n${{}}`
+</textarea>
+Result
+<textarea disabled rows=5></textarea>
+
+Input
+<textarea disabled rows=3>
+let a = [{name:"Moe"},{name:"Larry"},{name:"Curly"}],
+    result = dst`Stooges:\n<ul>\n${{a}}   <li>${item.name}</li>\n${{}}</ul>`
+</textarea>
+Result
+<textarea disabled rows=6></textarea>
+
+Input
+<textarea disabled rows=3>
+let a = [[1,2,3], [4,5,6], [7,8]],
+    result = dst`${{a}} * ${{item}} element = ${item}, ${{}}\n${{}}`
+</textarea>
+Result
+<textarea disabled rows=4></textarea>
+
+Input
+<textarea disabled rows=3>
+let a = [1,2,3,4],
+    result = dst`${{a}} ${item} squared is ${i=>i**2}\n${{}}`
+</textarea>
+Result
+<textarea disabled rows=5></textarea>
+
+Input
+<textarea disabled rows=4>
+let a = [1,2,3,4],
+    stars = v=>Array(v).fill('*'),
+    result = dst`${{a}} ${{stars}} ${item} ${{}}\n${{}}`
+</textarea>
+Result
+<textarea disabled rows=5></textarea>
+
+Input
+<textarea disabled rows=3>
+let a = [1,2,3,4],
+    result = dst`${{a}} ${[v=>Array(v).fill('*')]} ${item} ${{}}\n${{}}`
+</textarea>
+Result
+<textarea disabled rows=5></textarea>
+
+Input
+<textarea disabled rows=4>
+let join = (v,i,arr)=>(i<arr.length-1),
+    a = [1,2,3],
+    result = dst`${{a}} ${item}${{join}},${{}} ${{}}`
+</textarea>
+Result
+<textarea disabled rows=2></textarea>
+
+Input
+<textarea disabled rows=14>
+function table(headers, body) {
+	return dst`<table>
+${[v=>headers.length>0]}
+   <tr>${{headers}} 
+${{item}}       <th>${item}</th>${{}}${{}}
+    </tr>${{}}
+${{body}}    <tr> 
+${{item}}       <td>${item}</td>
+${{}}    </tr>
+${{}}
+</table>`
+}
+
+let result = table(['a','b','c'], [[1,2,3],[4,5,6],[7,8,9]])
+</textarea>
+Result
+<textarea disabled rows=25></textarea>
+</div>
+</body>
+</html>
+
+<script type=module>
+// dst = dead simple templates. Based on tagged templates
+import {dst, item} from './dst.js'
+
+let g = document.getElementById('examples'),
+	result=false
+for (let b of g.children) {
+	if (b.tagName=='TEXTAREA') {
+		if (result) {
+			b.value = result
+			result = false
+		} else {
+			let text = b.value
+			text = ('()=>{'+text+'\nreturn result}').replaceAll('&gt;','>')
+			result = eval(text)()
+		}
+	} 
+}
+
+/*
+console.log(dst`This has an ${{a:true}} if-section ${{}} with stuff after ${3} end`)
+console.log(dst`This has an ${{a:true}} if-section ${{a:true}} nested if-section ${{}} x ${{}} with stuff after ${3} then an end`)
+
+console.log(dst`This has an ${{a:false}} if-section ${{}} with stuff after ${3} end`)
+
+let outer = [1,2,3,4],
+	inner = [1,2,3]
+console.log(dst`This has a\n${{outer}}  loop-section ${item}^2=${item(x=>x**2)}\n${{}}with stuff after ${3} end`)
+
+
+console.log(dst`This has a\n${{outer}}  loop-section ${item}: ${{inner}} *${item} ${{}} \n${{}}with stuff after ${3} end`)
+
+console.log(dst`${{a:[[1,2,3],[4,5,6],false,true] }} ${{item}} elem=${item}, ${{}}\n${{}}`)
+*/
+</script>

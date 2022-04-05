@@ -123,7 +123,7 @@ gives `str` the value
  4 squared is 16
 ```
 
-When a function is used as a section, it is called using the current array item or section variable as an argument, and the return value of that is used as the section value. (If there is no current array item or section, it is passed `undefined`). 
+When a function is used as a section, it is called using the current array item as an argument (even if inside a boolean section), and the return value of that is used as the section value. (If there is no current array item or section, it is passed `undefined`). 
 
 For example:
 ```javascript

@@ -10,7 +10,7 @@ function valueof(section) {
 
 function is(v) {
 	// returns the type of substitution we have in the template:
-	// 'loop' - an object
+	// 'section' - an object
 	// 'end' - an empty object
 	// 'var' - item or function
 	if (typeof v == 'function') {
@@ -22,11 +22,6 @@ function is(v) {
 }
 
 export function dst(strings, ...values) {
-	// dst - dead simple templates. 
-	
-	//strings is read only so we make a copy so dropline will work
-	strings = [...strings]
-	
 	// detect the begin and end of each section
 	// contained in the values array
 	let sections = {}, 
@@ -51,19 +46,20 @@ export function dst(strings, ...values) {
 	}
 	
 	// change strings so isolated sections and ends don't make it into the final product
-	let strs = [...strings]
+	let strs = [...strings] // copy needed because strings is read-only
 	for (let i=0; i<values.length; i++) {
 		if (['section', 'end'].includes(is(values[i])) && strings[i].endsWith('\n') && strings[i+1].startsWith('\n')) {
 			strs[i+1] = strs[i+1].slice(1)
 		}
 	}
-	// deal with the first value, which might be `${{...}}\n or `\n${{..}}\n 
+	// deal with the first section, which might be `${{...}}\n or `\n${{..}}\n 
 	if (['section', 'end'].includes(is(values[0])) && ['','\n'].includes(strings[0]) && strings[1].startsWith('\n')) {
 		strs[1] = strings[1].slice(1)
 		if (strs[0]=='\n') {
 			strs[0]=''
 		}
 	}
+	
 	// render the template
 	return render(strs, values, sections, [], 0, strings.length)
 }
@@ -71,8 +67,8 @@ export function dst(strings, ...values) {
 function render(strings, values, sections, loopvar, start, end) {
 	// render the dst
 	// strings, values are the template string elements
-	// sections[i] gives the value which ends the section
-	// loopvar holds the current loop variable
+	// sections[i] gives the index into values which ends the section
+	// loopvar holds the containing loop variable
 	// start, end are the indices into the strings for the current section
 	
 	let output = ''
@@ -89,7 +85,7 @@ function render(strings, values, sections, loopvar, start, end) {
 				// check for nested or function sections
 				if (is(val) == 'var') {
 					// val is a function reference to the outer loop variate
-					val = val(...[].concat(loopvar))
+					val = val(...loopvar)
 				}
 				if (Array.isArray(val)) {
 					// a loop section
@@ -97,25 +93,27 @@ function render(strings, values, sections, loopvar, start, end) {
 						output += render(strings, values, sections, [val[k], k, val], i + 1, sections[i] + 1)
 					}
 				} else if (val) {
-					// a boolean section
-					output += render(strings, values, sections, [val], i + 1, sections[i] + 1)
+					// a boolean section, we don't change the loopvar because in a bool section
+					// it is either true or false, so not much use.
+					output += render(strings, values, sections, loopvar, i + 1, sections[i] + 1)
 				}
 				i = sections[i]
 				break
 			case 'var':
-				// var is an item/function called on the current loopvar
-				output += val(...[].concat(loopvar))
+				// var is an item or function called on the current loopvar
+				output += val(...loopvar)
 				break
 			default:
 				// normal template literal behaviour
 				output += val
 		}
 	}
+	
 	// add the unpaired string
 	return output + strings[end - 1]
 }
 
-// item handler
+// item proxy handler
 let handler = {
 	apply: function (target, thisarg, args) {
 		return target(...args)

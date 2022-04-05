@@ -103,14 +103,14 @@ gives `str` the following value:
  *  element = 4,  element = 5,  element = 6, 
  *  element = 7,  element = 8, 
 ```
-The first occurrence of `item` is `${{item}}` which starts a new array section, since in this case the item is an array. Within the section `${{item}}...${{}}` section, the second occurrence of `item`, namely `${item}`,causes substitution.
+The first occurrence of `item` is `${{item}}` which starts a new array section, since in this case the item is an array. Within the nested `${{item}}...${{}}` section, the `${item}` causes substitution of the item value.
 
 The nested section doesn't have to be an array. If it evaluated to a boolean value, the nested section would be included or omitted.
 
 ## Functions.
 
 A function can be used in a template substitution or to start a section. 
-When used in a template substitution, it takes the current array element or section variable. For example
+When used in a template substitution, the function is given the current array item. For example
 ```javascript
 let a = [1,2,3,4],
     str = dst`${{a}} ${item} squared is ${i=>i**2}\n${{}}`
@@ -123,7 +123,7 @@ gives `str` the value
  4 squared is 16
 ```
 
-When a function is used as a section, it is called using the current array item as an argument (even if inside a boolean section), and the return value of that is used as the section value. (If there is no current array item or section, it is passed `undefined`). 
+When a function is used as a section, it is called using the current array item as an argument (even if inside a boolean section), and the return value of that is used as the section value. (If there is no current array item, it is passed `undefined`). 
 
 For example:
 ```javascript
@@ -141,7 +141,7 @@ gives `str` the value
 The outer section `${{a}}...${{}}` loops over `a`. The inner section starts with `${{stars}}`. The function `stars` is passed the current item of `a` (1 or 2 or 3 or 4), and returns an array of stars. This array creates an array section which is then looped over to produce each line in the output.
 
 Functions in a template are called with three arguments:
-* the array element (i.e. the `item`), or the boolean section variable.
+* the array element (i.e. the `item`).
 * the array index, `undefined` if in a boolean section.
 * the array being looped over, `undefined` if in a boolean section.
 
@@ -182,7 +182,7 @@ does the same as before.
 
 ## Join elements.
 
-Sometimes you will want to run an array section where something is inserted between elements, but not after the last one. You can do this by defining a function `j` which detects whether its at the end of the array, and using it as a boolean section. The function is:
+Sometimes you will want to run an array section where something is inserted between elements, but not after the last one. You can do this by defining a function `j` which detects whether its at the end of the array, and use it to define a boolean section. The function is:
 ```javascript
 let j = (v,i,arr)=>(i<arr.length-1)
 ```

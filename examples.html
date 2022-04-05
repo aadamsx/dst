@@ -26,6 +26,19 @@ Result
 <textarea disabled rows=6></textarea>
 
 Input
+<textarea disabled rows=8>
+let a = [{name:"Moe"},{name:"Larry"},{name:"Curly"}],
+    result = dst`Stooges:
+<ul>
+${{a}}
+   <li>${item.name}</li>
+${{}}
+</ul>`
+</textarea>
+Result
+<textarea disabled rows=6></textarea>
+
+Input
 <textarea disabled rows=3>
 let a = [[1,2,3], [4,5,6], [7,8]],
     result = dst`${{a}} * ${{item}} element = ${item}, ${{}}\n${{}}`
@@ -71,14 +84,22 @@ Input
 <textarea disabled rows=14>
 function table(headers, body) {
 	return dst`<table>
-${[v=>headers.length>0]}
-   <tr>${{headers}} 
-${{item}}       <th>${item}</th>${{}}${{}}
-    </tr>${{}}
-${{body}}    <tr> 
-${{item}}       <td>${item}</td>
-${{}}    </tr>
-${{}}
+${[v=>headers.length>0]/*header on-off*/}
+   <tr>
+${{headers}}
+${{item}}
+       <th>${item}</th>
+${{/*of items*/}}
+${{/*of headers*/}}
+    </tr>
+${{/*of header on-off*/}}
+${{body}}
+    <tr>
+${{item}}
+       <td>${item}</td>
+${{/*of items*/}}
+    </tr>
+${{/* of body*/}}
 </table>`
 }
 
@@ -108,20 +129,4 @@ for (let b of g.children) {
 		}
 	} 
 }
-
-/*
-console.log(dst`This has an ${{a:true}} if-section ${{}} with stuff after ${3} end`)
-console.log(dst`This has an ${{a:true}} if-section ${{a:true}} nested if-section ${{}} x ${{}} with stuff after ${3} then an end`)
-
-console.log(dst`This has an ${{a:false}} if-section ${{}} with stuff after ${3} end`)
-
-let outer = [1,2,3,4],
-	inner = [1,2,3]
-console.log(dst`This has a\n${{outer}}  loop-section ${item}^2=${item(x=>x**2)}\n${{}}with stuff after ${3} end`)
-
-
-console.log(dst`This has a\n${{outer}}  loop-section ${item}: ${{inner}} *${item} ${{}} \n${{}}with stuff after ${3} end`)
-
-console.log(dst`${{a:[[1,2,3],[4,5,6],false,true] }} ${{item}} elem=${item}, ${{}}\n${{}}`)
-*/
 </script>

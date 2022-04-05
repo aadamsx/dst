@@ -24,6 +24,9 @@ function is(v) {
 export function dst(strings, ...values) {
 	// dst - dead simple templates. 
 	
+	//strings is read only so we make a copy so dropline will work
+	strings = [...strings]
+	
 	// detect the begin and end of each section
 	// contained in the values array
 	let sections = {}, 
@@ -47,21 +50,35 @@ export function dst(strings, ...values) {
 		throw `Start section at position ${stack.pop()} has no matching end`
 	}
 	
+	// change strings so isolated sections and ends don't make it into the final product
+	let strs = [...strings]
+	for (let i=0; i<values.length; i++) {
+		if (['section', 'end'].includes(is(values[i])) && strings[i].endsWith('\n') && strings[i+1].startsWith('\n')) {
+			strs[i+1] = strs[i+1].slice(1)
+		}
+	}
+	// deal with the first value, which might be `${{...}}\n or `\n${{..}}\n 
+	if (['section', 'end'].includes(is(values[0])) && ['','\n'].includes(strings[0]) && strings[1].startsWith('\n')) {
+		strs[1] = strings[1].slice(1)
+		if (strs[0]=='\n') {
+			strs[0]=''
+		}
+	}
 	// render the template
-	return render(strings, values, sections, [], 0, strings.length)
+	return render(strs, values, sections, [], 0, strings.length)
 }
 
-function render(strings, values, sections, loopstack, start, end) {
+function render(strings, values, sections, loopvar, start, end) {
 	// render the dst
 	// strings, values are the template string elements
 	// sections[i] gives the value which ends the section
-	// loopstack holds the loop variables
+	// loopvar holds the current loop variable
 	// start, end are the indices into the strings for the current section
 	
 	let output = ''
 
 	// loop over (string, value) pairs
-	for (let i = start; i < end - 1; i++) {
+	for (let i = start; i < end-1; i++) {
 		// add string
 		output += strings[i]
 		// process paired value
@@ -72,26 +89,22 @@ function render(strings, values, sections, loopstack, start, end) {
 				// check for nested or function sections
 				if (is(val) == 'var') {
 					// val is a function reference to the outer loop variate
-					val = val(...[].concat(loopstack.at(-1)))
+					val = val(...[].concat(loopvar))
 				}
 				if (Array.isArray(val)) {
 					// a loop section
 					for (let k = 0; k < val.length; k++) {
-						loopstack.push([val[k], k, val])
-						output += render(strings, values, sections, loopstack, i + 1, sections[i] + 1)
-						loopstack.pop()
+						output += render(strings, values, sections, [val[k], k, val], i + 1, sections[i] + 1)
 					}
 				} else if (val) {
 					// a boolean section
-					loopstack.push([val])
-					output += render(strings, values, sections, loopstack, i + 1, sections[i] + 1)
-					loopstack.pop()
+					output += render(strings, values, sections, [val], i + 1, sections[i] + 1)
 				}
 				i = sections[i]
 				break
 			case 'var':
-				// var is an item/function called on the current loopstack values
-				output += val(...[].concat(loopstack.at(-1)))
+				// var is an item/function called on the current loopvar
+				output += val(...[].concat(loopvar))
 				break
 			default:
 				// normal template literal behaviour
@@ -105,13 +118,7 @@ function render(strings, values, sections, loopstack, start, end) {
 // item handler
 let handler = {
 	apply: function (target, thisarg, args) {
-		if (typeof args[0] == 'function') {
-			// composit the function with the existing one in target
-			return new Proxy((v,i,a) => args[0](target(v,i,a)), handler)
-		} else {
-			// called by render
-			return target(...args)
-		}
+		return target(...args)
 	},
 	get: function (target, prop, receiver) {
 		// access properties of the loopvar

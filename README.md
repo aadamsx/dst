@@ -20,7 +20,7 @@ Stooges:
   Curly
 ```
 
-A `dst` template is a javascript tagged template which understands **sections**, that can be included, excluded, or repeated multiple times. In the above example, the section starts with `${{a}}` and ends with `${{}}`. The start of the section is a template placeholder `${     }` containing the object literal `{a}`. The end of the section is a placeholder containing an empty object `{}`. When `a` is an array, the inside of the section is repeated as many times as there are items in the array. Within the section being repeated, `item` refers to the current item in the loop.
+A `dst` template is a javascript tagged template which understands **sections**, that can be included, excluded, or repeated multiple times. In the above example, the section starts with `${{a}}` and ends with `${{}}`. The start of the section is a template placeholder `${     }` containing the object literal `{a}`. The end of the section is a placeholder containing an empty object `{}`. When `a` is an array, the inside of the section is repeated as many times as there are items in the array. Inside the section being repeated, `item` refers to the current item in the loop.
 
 `dst` handles most other substitutions as if it were a normal template literal.
 
@@ -41,7 +41,7 @@ The part of the template between the start of the section `${{p}}` and the end `
 
 ## Array Sections.
 
-When the variable in the section is an array, the inside of the section is repeated multiple times. For example:
+When the variable in the section start is an array, the inside of the section is repeated multiple times. For example:
 
 ```javascript
 let a = ["Moe","Larry","Curly"],
@@ -56,7 +56,7 @@ Stooges:
    <li>Curly</li>
 </ul>
 ```
-The start of the array section is indicated by `${{a}}` and the end of the section is indicated by `${{}}`. You can optionally put a comment inside the end to link it visually to the start, for example `${{/*a*/}}`. The template string between the start and end is looped over as often as there are elements in `a`. Within the loop section, the special object `item` refers to the array element in the loop. 
+The start of the array section is indicated by `${{a}}` and the end of the section is indicated by `${{}}`. You can put a comment inside the end to link it visually to the start, for example `${{/*a*/}}`. The template string between the start and end is looped over as often as there are elements in `a`. Within the loop section, the special object `item` refers to the array element in the loop. 
 
 If the array elements are objects, then we can reference parts of those objects using `item`. For example:
 
@@ -103,7 +103,7 @@ gives `result` the following value:
  *  element = 4,  element = 5,  element = 6, 
  *  element = 7,  element = 8, 
 ```
-The first occurrence of `item` is `${{item}}` which starts a new array section, since in this case the item is an array. Within the nested `${{item}}...${{}}` section, the `${item}` causes substitution of the item value.
+The first occurrence of `item` is `${{item}}` which starts a new array section, since the item is an array. Within the nested `${{item}}...${{}}` section, the `${item}` causes substitution of the item value.
 
 The nested section doesn't have to be an array. If it evaluated to a boolean value, the nested section would be included or omitted.
 
@@ -113,7 +113,7 @@ A function can be used in a template substitution or to start a section.
 When used in a template substitution, the function is given the current array item. For example
 ```javascript
 let a = [1,2,3,4],
-    result = dst`${{a}} ${item} squared is ${i=>i**2}\n${{}}`
+    result = dst`${{a}} ${item} squared is ${v=>v**2}\n${{}}`
 ```
 gives `result` the value
 ```
@@ -145,7 +145,7 @@ Functions in a template are called with three arguments:
 * the array index, `undefined` if in a boolean section.
 * the array being looped over, `undefined` if in a boolean section.
 
-much like a `map` callback. You can use as many or as few of these arguments as you want.
+like an `Array.map` callback. You can use as many or as few of these arguments as you want.
 
 > Note that `item` is actually a proxy for the identity function `v=>v`, and `item.prop` is a proxy
 > for `v=>v[prop]`.
@@ -158,7 +158,7 @@ let result = dst`${[ [1,2,3] ]} ${item} ${{}}`
 ```
 gives `result` the value ``' 1  2  3 '``. 
 
-This feature means you **can't** substitute arrays directly into `dst`, since `${[1,2,3]}` is going to be interpreted as a section (and a *boolean* section, for that matter, with a value of 1). Instead, to substitute an array, you need to make it a string by joining it, as `${[1,2,3].join(',')}`. This is what happens to arrays anyway in ordinary template literals.
+This feature means you **can't** substitute arrays directly into `dst`, since `${[1,2,3]}` is going to be interpreted as a boolean section (with a value of 1). Instead, to substitute an array, you need to make it a string by joining it, as `${[1,2,3].join(',')}`. This is what happens to arrays anyway in ordinary template literals.
 
 ## Re-using Templates.
 
@@ -179,6 +179,8 @@ let li = value => dst`<li>${value.name}</li>`, // dst doesn't do anything specia
     result = dst`Stooges:\n<ul>\n${{a}} ${li}\n${{}}</ul>`
 ```
 does the same as before.
+
+Unlike `mustaches.js`, you can't easily define a template in a `<template>` tag. Instead, you should define them in scripts or modules.
 
 ## Join elements.
 

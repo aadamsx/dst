@@ -1,5 +1,4 @@
 # Examples.
-`dst` in action
 
 ### Boolean Sections.
 
@@ -52,13 +51,13 @@ Stooges:
 ```
 
 ## Boolean Section based on a function.
-This marks even numbers in an array. 
+This marks even and odd numbers in an array. 
 #### Input
 ```javascript
 let a = [1,2,3,4,5,6],
     even = v=>v%2==0,
     odd = v=>v%2==1,
-    result = dst`${{a}}${item}${{even}} is even${{}}${{odd}} is odd${{}}\n${{}}`
+    result = dst`${{a}}${item} is ${{even}}even${{}}${{odd}}odd${{}}\n${{}}`
 ```
 #### Result
 ```
@@ -71,11 +70,11 @@ let a = [1,2,3,4,5,6],
 ```
 
 ## Boolean Section as a Filter.
-The `item` refers to the last array section.
+The `item` within the `${{even}}` section refers to the last array section.
 #### Input
 ```javascript
 let a = [1,2,3,4,5,6],
-    even = v=>v%2==0
+    even = v=>v%2==0,
     result = dst`${{a}}${{even}}${item} is even\n${{}}${{}}`
 ```
 #### Result
@@ -89,7 +88,7 @@ let a = [1,2,3,4,5,6],
 #### Input:
 ```javascript
 let a = [1,2,3,4],
-    result = dst`${{a}} ${item} squared is ${i=>i**2}\n${{}}`
+    result = dst`${{a}} ${item} squared is ${v=>v**2}\n${{}}`
 ```
 #### Result
 ```
@@ -129,21 +128,23 @@ array[3] = 4
 The object `item` only reports on the current array item. To get information about the outer one, we have to define a function to save and retrieve it.
 #### Input:
 ```javascript
-let a = [[1,2,3],[4,5,6]],
-    rowno,
-    saverow = (v,i)=>{rowno=i+1;return ''},
-    getrow = v=>rowno,
+let r = [1,2,3],
+    c = [4,5,6],
+    rval,
+    saveitem = v=>{rval=v;return ''},
+    outer = v=>rval,
     result = dst`
-${{a}}
-${saverow}${{item}} (${getrow}, ${item})  ${{}}
+${{r}}
+${saveitem}${{c}} (${outer}, ${item})  ${{}}
 ${{}}`
 ```
 #### Result
 ```
  (1, 1)   (1, 2)   (1, 3)  
- (2, 4)   (2, 5)   (2, 6)  
+ (2, 1)   (2, 2)   (2, 3)  
+ (3, 1)   (3, 2)   (3, 3)  
 ```
-## Example of Automatic Line Removal
+## Automatic Line Removal
 Lines containing just sections or ends are not passed into the result.
 #### Input:
 ```javascript

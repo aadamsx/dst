@@ -10,9 +10,9 @@ Here is a quick example showing how to use `dst`
 import {dst, item} from './path/to/dst.js'
 
 let a = ["Moe","Larry","Curly"],
-    str = dst`Stooges:\n${{a}}  ${item}\n${{}}`
+    result = dst`Stooges:\n${{a}}  ${item}\n${{}}`
 ```
-The value of `str` is then:
+The value of `result` is then:
 ```
 Stooges:
   Moe
@@ -30,9 +30,9 @@ There are two kinds of section in `dst`: boolean and array.
 A boolean section is shown or omitted depending on the value of a boolean variable. For example, the code below:
 ```javascript
 let p = false,
-    str = dst`shown ${{p}} not shown ${{}}`
+    result = dst`shown ${{p}} not shown ${{}}`
 ```
-will give `str` the following value:
+will give `result` the following value:
 
 ```
 shown 
@@ -45,9 +45,9 @@ When the variable in the section is an array, the inside of the section is repea
 
 ```javascript
 let a = ["Moe","Larry","Curly"],
-    str = dst`Stooges:\n<ul>\n${{a}}   <li>${item}</li>\n${{}}</ul>`
+    result = dst`Stooges:\n<ul>\n${{a}}   <li>${item}</li>\n${{}}</ul>`
 ```
-The value of `str` is then
+The value of `result` is then
 ```
 Stooges:
 <ul>
@@ -62,7 +62,7 @@ If the array elements are objects, then we can reference parts of those objects 
 
 ```javascript
 let a = [{name:"Moe"},{name:"Larry"},{name:"Curly"}],
-    str = dst`Stooges:\n<ul>\n${{a}}   <li>${item.name}</li>\n${{}}</ul>`
+    result = dst`Stooges:\n<ul>\n${{a}}   <li>${item.name}</li>\n${{}}</ul>`
 ```
 also gives:
 ```
@@ -78,7 +78,7 @@ Stooges:
 
 It can aid readability to put the sections and ends on lines by themselves. This would ordinarily create line breaks in the template output so to avoid this, `dst` spots sections that are on lines by themselves and removes the newline. For example
 ```javascript
-str = dst`Stooges:
+result = dst`Stooges:
 <ul>
 ${{a}}
    <li>${item.name}</li>
@@ -95,9 +95,9 @@ The `item` object can be used to start another section within the existing one. 
 
 ```javascript
 let a = [[1,2,3], [4,5,6], [7,8]],
-    str = dst`${{a}} * ${{item}} element = ${item}, ${{}}\n${{}}`
+    result = dst`${{a}} * ${{item}} element = ${item}, ${{}}\n${{}}`
 ```
-gives `str` the following value:
+gives `result` the following value:
 ```
  *  element = 1,  element = 2,  element = 3, 
  *  element = 4,  element = 5,  element = 6, 
@@ -113,9 +113,9 @@ A function can be used in a template substitution or to start a section.
 When used in a template substitution, the function is given the current array item. For example
 ```javascript
 let a = [1,2,3,4],
-    str = dst`${{a}} ${item} squared is ${i=>i**2}\n${{}}`
+    result = dst`${{a}} ${item} squared is ${i=>i**2}\n${{}}`
 ```
-gives `str` the value
+gives `result` the value
 ```
  1 squared is 1
  2 squared is 4
@@ -129,9 +129,9 @@ For example:
 ```javascript
 let a = [1,2,3,4],
     stars = v=>Array(v).fill('*'),
-    str = dst`${{a}} ${{stars}} ${item} ${{}}\n${{}}`
+    result = dst`${{a}} ${{stars}} ${item} ${{}}\n${{}}`
 ```
-gives `str` the value
+gives `result` the value
 ```
   * 
   *  * 
@@ -154,9 +154,9 @@ much like a `map` callback. You can use as many or as few of these arguments as 
 
 A section is marked by a template placeholder containing an object literal. Since arrays are also objects in javascript, a section can start instead with a placeholder containing an array. This is useful if we want to use anonymous variables. For example
 ```javascript
-let str = dst`${[ [1,2,3] ]} ${item} ${{}}`
+let result = dst`${[ [1,2,3] ]} ${item} ${{}}`
 ```
-gives `str` the value ``' 1  2  3 '``. 
+gives `result` the value ``' 1  2  3 '``. 
 
 This feature means you **can't** substitute arrays directly into `dst`, since `${[1,2,3]}` is going to be interpreted as a section (and a *boolean* section, for that matter, with a value of 1). Instead, to substitute an array, you need to make it a string by joining it, as `${[1,2,3].join(',')}`. This is what happens to arrays anyway in ordinary template literals.
 
@@ -176,7 +176,7 @@ For example
 ```javascript
 let li = value => dst`<li>${value.name}</li>`, // dst doesn't do anything special here
     a = [{name:"Moe"},{name:"Larry"},{name:"Curly"}],
-    str = dst`Stooges:\n<ul>\n${{a}} ${li}\n${{}}</ul>`
+    result = dst`Stooges:\n<ul>\n${{a}} ${li}\n${{}}</ul>`
 ```
 does the same as before.
 
@@ -189,6 +189,6 @@ let j = (v,i,arr)=>(i<arr.length-1)
 These can be used as follows:
 ```javascript
 let a = [1,2,3],
-    str = dst`${{a}} ${item}${{j}},${{}}${{}}`
+    result = dst`${{a}} ${item}${{j}},${{}}${{}}`
 ```
 The `${{j}}` section contains a comma. When `j` evaluates to true, the comma is inserted in the result, and when false (at the end of the array) the comma isn't inserted. The example gives `str` the value `' 1,  2,  3'`.

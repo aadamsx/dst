@@ -1,0 +1,47 @@
+<html>
+<title>dst tryout </title>
+<head>
+<style>
+code, samp {
+	background: lightgray;
+}
+</style>
+</head>
+<body>
+<div id=examples style='display:grid; grid-template-columns:1fr auto 1fr; gap:10px'>
+
+<div>Input</div>
+<div> </div>
+<div>Result</div>
+<textarea id=in rows=30></textarea>
+<button id=go style='height:25px'>-></button>
+<textarea id=out disabled rows=30></textarea>
+<p>
+Type your example in the input box, then hit ->. The value of the variable called
+"result" in your example will be put in the Result box. See examples.md for examples to try.
+</p>
+</div>
+
+</body>
+</html>
+
+<script type=module>
+// dst = dead simple templates. Based on tagged templates
+import {dst, item} from './dst.js'
+
+let button = document.querySelector('#go'),
+	input = document.querySelector('#in'),
+	output = document.querySelector('#out')
+
+button.onclick = evt=>{
+	let text = input.value
+	text = ('()=>{'+text+'\nreturn result}').replaceAll('&gt;','>')
+	try {
+		let result = eval(text)()
+		output.value = result
+	} catch (e) {
+		output.value = e
+	}
+}
+
+</script>

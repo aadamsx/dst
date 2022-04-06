@@ -1,18 +1,18 @@
 # `dst` - dead simple templates.
 
-`dst` is a very simple template system inspired by [mustaches.js](https://github.com/janl/mustache.js/), but built on top of javascript tagged templates.
+`dst` is a very simple very tiny template engine inspired by [mustaches.js](https://github.com/janl/mustache.js/), but built on top of javascript [tagged templates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals). Minimized, the template engine is just 1.22KB
 
 ## Usage.
 
 Here is a quick example showing how to use `dst`
 
 ```javascript
-import {dst, item} from './path/to/dst.js'
+import {dst, item} from './path/to/dst.min.js'
 
 let a = ["Moe","Larry","Curly"],
     result = dst`Stooges:\n${{a}}  ${item}\n${{}}`
 ```
-The value of `result` is then:
+The value of `result` is:
 ```
 Stooges:
   Moe
@@ -20,7 +20,7 @@ Stooges:
   Curly
 ```
 
-A `dst` template is a javascript tagged template which understands **sections**, that can be included, excluded, or repeated multiple times. In the above example, the section starts with `${{a}}` and ends with `${{}}`. The start of the section is a template placeholder `${     }` containing the object literal `{a}`. The end of the section is a placeholder containing an empty object `{}`. When `a` is an array, the inside of the section is repeated as many times as there are items in the array. Inside the section being repeated, `item` refers to the current item in the loop.
+A `dst` template is a tagged template which understands **sections**, that can be included, excluded, or repeated multiple times. In the above example, the section starts with `${{a}}` and ends with `${{}}`. The start of the section is a template placeholder `${     }` containing the object literal `{a}`. The end of the section is a placeholder containing an empty object `{}`. When `a` is an array, the inside of the section is repeated as many times as there are items in the array. Inside the section being repeated, `item` refers to the current item in the loop.
 
 `dst` handles most other substitutions as if it were a normal template literal.
 
